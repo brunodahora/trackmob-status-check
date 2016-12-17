@@ -44,8 +44,6 @@ module.exports = function (ctx, cb) {
 };
 
 function update_status(ctx) {
-  var request = require('request');
-  
   console.log("Updating Status");
   
   var urls = {
@@ -61,32 +59,35 @@ function update_status(ctx) {
   
   ctx.storage.set({}, { force: 1 }, function (error) {});
   
-  Object.keys(urls).forEach(function(key,index) {
-    request.get({
-      url : urls[key],
-      time : true
-    },function(error, response){
-      var status = key + ": ";
-      if (!error && response.statusCode == 200) {
-        status +=  "OK";
-      }else{
-        status += "ERROR"
-      }
-      status += " in " + response.elapsedTime + " ms\n";
-      update_data(ctx, key, status)
-    });
-  });
+  var keys = Object.keys(urls);
+  var data = {};
+  checkURL(ctx, data, urls, keys);
   
   return;
 }
 
-function update_data(ctx, key, status){
-  ctx.storage.get(function (error, data) {
-        console.log(data);
-        console.log(status);
-        if (error) return;
-        data[key] = status;
-        ctx.storage.set(data, { force: 1 }, function (error) {});
+function checkURL(ctx, data, urls, keys){
+  var request = require('request');
+  
+  var key = keys.shift();
+  request.get({
+      url : urls[key],
+      time : true
+  },function(error, response){
+    var status = key + ": ";
+    if (!error && response.statusCode == 200) {
+      status +=  "OK";
+    }else{
+      status += "ERROR"
+    }
+    status += " in " + response.elapsedTime + " ms\n";
+    console.log(status);
+    data[key] = status;
+    if(keys.length){
+      checkURL(ctx, data, urls, keys);
+    }else{
+      console.log(data);
+      ctx.storage.set(data, { force: 1 }, function (error) {});
+    }
   });
-  return;
 }
