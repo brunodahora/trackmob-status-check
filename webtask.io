@@ -43,12 +43,12 @@ https://webtask.slack.com (join via http://chat.webtask.io)
 */
 
 module.exports = function (ctx, cb) {
-  var HashMap = require('hashmap');
   var request = require('request');
   
-  var urls = new HashMap();
-  urls.set("guaracrm-prod", "https://guaracrm.com.br");
-  urls.set("guaracrm-staging", "https://staging.guaracrm.com.br");
+  var urls = {
+    guaracrm_prod: 'https://guaracrm.com.br',
+    guaracrm_staging: 'https://staging.guaracrm.com.br'
+  }
   
   var status = 'Status Check:\n';
   
@@ -58,9 +58,9 @@ module.exports = function (ctx, cb) {
   }
   
   if(params.indexOf("all") > -1){
-    urls.forEach(function(value, key) {
+    Object.keys(urls).forEach(function(key,index) {
       request.get({
-        url : value,
+        url : urls[key],
         time : true
       },function(error, response){
         status += key + ": ";
@@ -74,9 +74,9 @@ module.exports = function (ctx, cb) {
     });
   }else{
     params.forEach(function(entry) {
-      if(urls.has(entry)){
+      if(urls.hasOwnProperty(entry)){
         request.get({
-          url : urls.get(entry),
+          url : urls.get[entry],
           time : true
         },function(error, response){
           status += entry + ": ";
