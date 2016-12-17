@@ -46,8 +46,8 @@ module.exports = function (ctx, cb) {
   var request = require('request');
   
   var urls = {
-    guaracrm_prod: 'https://guaracrm.com.br',
-    guaracrm_staging: 'https://staging.guaracrm.com.br'
+    guaracrm_prd: 'https://guaracrm.com.br',
+    guaracrm_stg: 'https://staging.guaracrm.com.br'
   }
   
   var status = 'Status Check:\n';
@@ -57,6 +57,20 @@ module.exports = function (ctx, cb) {
     params = cb.body.text.split("  ");
   }
   
+  request.get({
+    url : 'https://staging.guaracrm.com.br',
+    time : true
+  },function(error, response){
+    status += "guaracrm-stg" + ": ";
+    if (!error && response.statusCode == 200) {
+      status +=  "OK";
+    }else{
+      status += "ERROR"
+    }
+    status += " em " + resonse.elapsedTime + " ms\n";
+  });
+  
+  /*
   if(params.indexOf("all") > -1){
     Object.keys(urls).forEach(function(key,index) {
       request.get({
@@ -92,6 +106,7 @@ module.exports = function (ctx, cb) {
       }
     });
   }
+  */
   
   cb(null, {
     response_type: 'in_channel', // uncomment to have the response visible to everyone on the channel
