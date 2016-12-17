@@ -44,28 +44,58 @@ https://webtask.slack.com (join via http://chat.webtask.io)
 
 module.exports = function (ctx, cb) {
   var HashMap = require('hashmap');
+  var request = require('request');
   
   var urls = new HashMap();
+  urls.set("guaracrm-prod", "https://guaracrm.com.br");
+  urls.set("guaracrm-staging", "https://staging.guaracrm.com.br");
   
-  
-  var response = 'Status Check:\n';
+  var status = 'Status Check:\n';
   
   var params = ["all"];
   if(!cb.body.text.trim()){
     params = cb.body.text.split("  ");
   }
   
-  
-  
   if(params.indexOf("all") > -1){
-    
+    urls.forEach(function(value, key) {
+      request.get({
+        url : value,
+        time : true
+      },function(error, response){
+        status += key + ": ";
+        if (!error && response.statusCode == 200) {
+          status +=  "OK";
+        }else{
+          status += "ERROR"
+        }
+        status += " em " + resonse.elapsedTime + " ms\n";
+      });
+    });
   }else{
-    
+    params.forEach(function(entry) {
+      if(urls.has(entry)){
+        request.get({
+          url : urls.get(entry),
+          time : true
+        },function(error, response){
+          status += entry + ": ";
+          if (!error && response.statusCode == 200) {
+            status +=  "OK";
+          }else{
+            status += "ERROR"
+          }
+          status += " em " + resonse.elapsedTime + " ms\n";
+        });
+      }else{
+        status += entry + " não identificado\n";
+      }
+    });
   }
   
   cb(null, {
     response_type: 'in_channel', // uncomment to have the response visible to everyone on the channel
-    text: response,
+    text: status,
   });
 };
 
